@@ -47,13 +47,14 @@ char hair_fragment_shader_path[] = "C:/OpenGLtemplate/Shaders/Fragment Shaders/h
 //char growth_obj_path[] = "C:/Users/Panthelis/Desktop/growth_mesh1.obj";
 char growth_obj_path[] = "C:/Users/Panthelis/Desktop/growth_mesh_hairline.obj";
 char obj_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/woman/woman1.obj";
-//char hair_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/straight/straight.hair";
-char hair_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/blonde/blonde.hair";
+char hair_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/straight/straight.hair";
+//char hair_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/blonde/blonde.hair";
 
 char light_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/woman/light.obj";
 
 
 char guide_vertex_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/guide_vertex_shader.glsl";
+char guide_geometry_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/guide_geometry_shader.glsl";
 char guide_fragment_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/guide_fragment_shader.glsl";
 
 float cameraX, cameraY, cameraZ;
@@ -113,7 +114,7 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	mMat = glm::rotate(mMat, -45.0f, glm::vec3(0, 1, 0)); // rotate on y
 
 	// The normal matrix is defined as 'the transpose of the inverse of the upper-left 3x3 part of the model matrix
-	// Used for non-uniform scaling of the model. In a uniform scaling, there is no visible result wether we use normal matrix or not
+	// Used for non-uniform scaling of the model. In a uniform scaling, there is no visible result whether we use normal matrix or not
 	glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(mMat)));
 
 	//glm::mat4 model_view = vMat * mMat;
@@ -135,6 +136,7 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	float rotateZ = cos(glfwGetTime()) * radius;
 
 	shader.SetVector3f("lightPos", glm::vec3(rotateX, 0.0f, rotateZ));
+	shader.setFloat("specular_strength", 0.5);
 	model.Draw(shader);
 
 
@@ -159,7 +161,8 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	guide_shader.setMat4("model", mMat);
 	guide_shader.setMat4("view", vMat);
 	guide_shader.setMat4("projection", projection);
-
+	guide_shader.SetVector3f("camera_front",camera.Front);
+	guide_shader.SetVector3f("camera_position", camera.Position);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//growth_mesh.Draw(hair_shader);
 	growth_mesh_guides.Draw();
@@ -187,7 +190,8 @@ void GetFPS() {
 	nbFrames++;
 	if (currentTime - lastTime >= 1.0) { // If last printf() was more than 1 sec ago
 		// printf and reset timer
-		printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+		//printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+		cout << camera.Position.x << " " << " " << camera.Position.y << " " << camera.Position.z << "  |  " << camera.Front.x << " " << camera.Front.y << " " << camera.Front.z  << endl;
 		nbFrames = 0;
 		lastTime += 1.0;
 	}
@@ -289,13 +293,14 @@ int main(void) {
 	Shader shader(vertex_shader_path, fragment_shader_path);
 	Shader light_shader(light_vertex_shader_path,light_fragment_shader_path);
 	Shader hair_shader(hair_vertex_shader_path, hair_fragment_shader_path);
-	Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path);
+	Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path, guide_geometry_shader_path);
+	//Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path);
 
 	// Initialize the window instance
 	init(window);
 
 	Model model(obj_path);
-	Model light(light_path);
+    Model light(light_path);
 
 	Model growth_mesh(growth_obj_path);
 

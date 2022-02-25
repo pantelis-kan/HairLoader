@@ -139,7 +139,8 @@ void Guides::SelectGuidesFromHairfile(Hair& hair, float* roots) {
 
 void Guides::FillPointArray(int total_points) {
 
-	points = new float[total_points*3];
+	// xyz = 3 and we also have 2, because each line has two extra vertices for adjacency
+	points = new float[total_points*3*2];
 
 	cout << "Total points : " << total_points << endl;
 
@@ -154,6 +155,18 @@ void Guides::FillPointArray(int total_points) {
 		float* arr = *it;
 
 		for (int i = 0; i < 3*nearest_segments[count]; i+=3) {
+
+			// Add the same vertex at the start and end for line adjacency
+			if (i == 0 || i == 3 * nearest_segments[count] - 1) {
+				float param = 0.0f;
+				if (i == 0) param = 0.1f;
+
+				points[pointcount] = arr[i];
+				points[pointcount + 1] = arr[i + 1] - param;
+				points[pointcount + 2] = arr[i + 2];
+				myfile << points[pointcount] << "  " << points[pointcount + 1] << "  " << points[pointcount + 2] << endl;
+				pointcount += 3;
+			}
 
 			points[pointcount] = arr[i];
 			points[pointcount + 1] = arr[i + 1];
@@ -199,9 +212,14 @@ void Guides::Fill_Struct() {
 			nearest_thickness[count] = original_thickness[min_index];
 			nearest_transparency[count] = original_transparency[min_index];
 
-			attrib.segment_index = j + 1;
-			attrib.thickness = nearest_thickness[count];
+			// last vertex of the hair has zero parameter, so that we can have zero width in the extra line, 
+			// and avoid if statements in the shaders
+			if (j == nearest_segments[i] - 1 ) attrib.segment_index = 0;
+			else attrib.segment_index = 1;
+
+			attrib.thickness = nearest_thickness[count] * attrib.segment_index;
 			attrib.transparency = nearest_transparency[count];
+
 			
 			attrib.color[0] = nearest_colors[color_count];
 			attrib.color[1] = nearest_colors[color_count + 1];
@@ -234,7 +252,7 @@ void Guides::SetupGuides() {
 	cout << "total_hair_points : " << total_hair_points << endl;
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, 3*total_hair_points * sizeof(float), this->points, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 2* 3*total_hair_points * sizeof(float), this->points, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
 	glBufferData(GL_ARRAY_BUFFER, attributes.size() * sizeof(Per_Vertex_Attribute), &attributes[0], GL_STATIC_DRAW);
@@ -276,7 +294,7 @@ void Guides::Draw() {
 	//int growth_mesh_hair_count = total_hair_points / line_segments[0];
 	int pointIndex = 0;
 
-	glDrawArrays(GL_LINE_STRIP, 0,  total_hair_points);
+	glDrawArrays(GL_LINE_STRIP_ADJACENCY, 0,  total_hair_points);
 
 	
 	/*for (int i = 0; i < growth_mesh_hair_count; i++) {
