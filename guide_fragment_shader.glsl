@@ -4,7 +4,14 @@ in vec3 color;
 in float transparency;
 out vec4 FragColor;
 
+in VS_OUT{
 
+
+	float thickness;
+	vec3 eye_vector;
+	vec4 point;
+	
+}fs_in[];
 
 void main()
 {
