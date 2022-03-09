@@ -31,11 +31,11 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 
 
 4. **Selected the nearest hair for each vertex of the growth mesh (approximate nearest neighbor)**
-![alt text](https://i.postimg.cc/BvyB4J0k/guides-1.png)
+![alt text](https://i.postimg.cc/mrQg2wf4/guides-1.png)
 
 
 
 5. **Rendered camera facing quads instead of lines, with a single draw call**
 
-![alt text](https://i.postimg.cc/65j7DYw1/quads.png)
+![alt text](https://i.postimg.cc/RVyS78v9/quads.png)
 
