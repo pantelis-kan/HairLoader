@@ -20,7 +20,7 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 ![alt text](https://i.postimg.cc/DwPNvJjD/point-cloud.png)
 
 
-2. **Executed the ball pivoting algorithm to turn the point cloud to a polygonial mesh**
+2. **Executed the ball pivoting algorithm to turn the point cloud to a polygonal mesh**
 
 ![alt text](https://i.postimg.cc/brn6KsSm/ball-pivoting.png)
 
