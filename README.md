@@ -12,3 +12,11 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 - Use tessellation to interpolate hair across the triangle: single-strand & multi-strand interpolation.
 - Implement different lighting algorithms (Kajiya & Kay, Marschner etc.).
 - Implement shadows (deep opacity shadow maps).
+
+## Step by Step
+
+1. Extracted a point cloud from the root of each hair (10.000 total)
+![alt text](https://i.postimg.cc/PrrTnH5d/point-cloud.png)
+
+2. Executed the ball pivoting algorithm to turn the point cloud to a polygonial mesh
+![alt text](https://i.postimg.cc/dVrWWkc3/ball-pivoting.png)
