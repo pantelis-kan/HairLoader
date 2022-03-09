@@ -1,4 +1,4 @@
-### HairLoader
+###### HairLoader
 
 This project is an implementation of real-time hair rendering in OpenGL and C++, based on Nvidia's SIGGRAPH 2008-2010 presentations. 
 
