@@ -17,17 +17,17 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 
 1. **Extracted a point cloud from the root of each hair (10.000 total)**
 
-![alt text](https://i.postimg.cc/DwPNvJjD/point-cloud.png)
+![alt text](https://i.postimg.cc/PrrTnH5d/point-cloud.png)
 
 
 2. **Executed the ball pivoting algorithm to turn the point cloud to a polygonal mesh**
 
-![alt text](https://i.postimg.cc/brn6KsSm/ball-pivoting.png)
+![alt text](https://i.postimg.cc/dVrWWkc3/ball-pivoting.png)
 
 
 3. **Simplified the mesh to 200 faces (growth mesh)**
 
-![alt text](https://i.postimg.cc/DyVp1dRH/growth-mesh.png)
+![alt text](https://i.postimg.cc/7hckNG8X/growth-mesh.png)
 
 
 4. **Selected the nearest hair for each vertex of the growth mesh (approximate nearest neighbor)**
