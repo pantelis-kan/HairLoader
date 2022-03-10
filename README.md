@@ -11,6 +11,7 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 - Use tessellation to implement cubic bezier curves for each guide.
 - Use tessellation to interpolate hair across the triangle: single-strand & multi-strand interpolation.
 - Implement different lighting algorithms (Kajiya & Kay, Marschner etc.).
+- Instance based rendering
 - Implement anti aliasing techniques for thin lines (MSAA or something more efficient)
 - Implement shadows (and deep opacity maps).
 
