@@ -22,7 +22,7 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 ![alt text](https://i.postimg.cc/PrrTnH5d/point-cloud.png)
 
 
-2. **Executed the ball pivoting algorithm to turn the point cloud to a polygonal mesh**
+2. **Executed the ball pivoting algorithm to turn the point cloud to a polygonal mesh using MeshLab**
 
 ![alt text](https://i.postimg.cc/dVrWWkc3/ball-pivoting.png)
 
@@ -41,4 +41,7 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 5. **Rendered camera facing quads instead of lines, with a single draw call**
 
 ![alt text](https://i.postimg.cc/RVyS78v9/quads.png)
+
+6. **Used the tessellation shader to create smooth curves with Bezier curves.** A known problem with simple Bezier curves is that there are discontinuities at every 4 vertices (the number of patches). A better approach is to use B-splines (and more specifically Hermite curves, taking advantage of the tangents for each pair of vertices).
+![alt text](https://i.postimg.cc/m231qSkG/bezier.png)
 
