@@ -42,6 +42,6 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 
 ![alt text](https://i.postimg.cc/RVyS78v9/quads.png)
 
-6. **Used the tessellation shader to create smooth curves with Bezier curves.** A known problem with simple Bezier curves is that there are discontinuities at every 4 vertices (the number of patches). A better approach is to use B-splines (and more specifically Hermite curves, taking advantage of the tangents for each pair of vertices).
-![alt text](https://i.postimg.cc/m231qSkG/bezier.png)
+6. **Used the tessellation shader to create smooth curves with Bezier curves.** A known problem with cubic Bezier curves is that there are discontinuities at every 4 vertices (the number of patches). A better approach is to use B-splines (and more specifically Hermite curves, taking advantage of the tangents for each pair of vertices).
+![alt text](https://i.postimg.cc/N0XcJdG6/bezier.png)
 
