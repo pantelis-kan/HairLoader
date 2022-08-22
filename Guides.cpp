@@ -129,24 +129,27 @@ void Guides::SelectGuidesFromHairfile(Hair& hair, float* roots) {
 		guide_points.push_back(line);
 	}
 
-	FillPointArray(total_point_array_size);
+
 
 	total_hair_points = total_point_array_size;
 	cout << "Total hair points " << total_hair_points << endl;
+
+	FillPointArray(total_point_array_size);
+	Fill_Tangents(total_point_array_size);
+
 	myfile.close();
 }
 
 
 void Guides::FillPointArray(int total_points) {
 
-	// xyz = 3 and we also have 2, because each line has two extra vertices for adjacency
-	points = new float[total_points*3*2];
+	points = new float[total_points*3];
+	
 
 	cout << "Total points : " << total_points << endl;
 
 	ofstream myfile;
 	myfile.open("guides.txt");
-
 
 	int count = 0;
 	int pointcount = 0;
@@ -155,18 +158,6 @@ void Guides::FillPointArray(int total_points) {
 		float* arr = *it;
 
 		for (int i = 0; i < 3*nearest_segments[count]; i+=3) {
-
-			// Add the same vertex at the start and end for line adjacency
-			if (i == 0 || i == 3 * nearest_segments[count] - 1) {
-				float param = 0.0f;
-				if (i == 0) param = 0.1f;
-
-				points[pointcount] = arr[i];
-				points[pointcount + 1] = arr[i + 1] - param;
-				points[pointcount + 2] = arr[i + 2];
-				myfile << points[pointcount] << "  " << points[pointcount + 1] << "  " << points[pointcount + 2] << endl;
-				pointcount += 3;
-			}
 
 			points[pointcount] = arr[i];
 			points[pointcount + 1] = arr[i + 1];
@@ -184,15 +175,63 @@ void Guides::FillPointArray(int total_points) {
 }
 
 
+void Guides::Fill_Tangents(int total_points) {
+	ofstream tangentfile;
+
+
+	tangentfile.open("tangents.txt");
+	tangents = new float[total_points * 3];
+
+	float a = 0.5f;
+
+	int tangent_count = 0, point_count = 0;
+
+	for (int i = 0; i < this->total_points / 3; i++) {
+
+		for (int j = 0; j < nearest_segments[i]; j++) {
+
+			// special treatment for first and last tangent of a segment 
+			if (j == 0 ) {
+				tangents[tangent_count] = a * (points[point_count + 3] - points[point_count]);
+				tangents[tangent_count + 1] = a * (points[point_count + 4] - points[point_count + 1]);
+				tangents[tangent_count + 2] = a * (points[point_count + 5] - points[point_count + 2]);
+			}
+			else if (j == nearest_segments[i] - 1) {
+				tangents[tangent_count] = a * (points[point_count] - points[point_count-3]);
+				tangents[tangent_count + 1] = a * (points[point_count + 1] - points[point_count - 2]);
+				tangents[tangent_count + 2] = a * (points[point_count + 2] - points[point_count - 1]);
+			}
+			// Ti = 0.5 * (Pi+1 - Pi-1)
+			else {
+				tangents[tangent_count] = a * (points[point_count + 3] - points[point_count-3]);
+				tangents[tangent_count + 1] = a * (points[point_count + 4] - points[point_count - 2]);
+				tangents[tangent_count + 2] = a * (points[point_count + 5] - points[point_count - 1]);
+			}
+			
+			tangentfile << tangents[tangent_count] << ", " << tangents[tangent_count + 1] << ", " <<  tangents[tangent_count + 2] << endl;
+			point_count += 3;
+			tangent_count += 3;
+		}
+	}
+
+	tangentfile.close();
+
+}
+
 void Guides::Fill_Struct() {
 
 	nearest_transparency = new float[total_hair_points];
 	nearest_thickness = new float[total_hair_points];
 	nearest_colors = new float[3*total_hair_points];
+	
 
 	float* original_thickness = hair->GetThickness();
 	float* original_colors = hair->GetColors();
 	float* original_transparency = hair->GetTransparency();
+
+	ofstream myfile;
+	myfile.open("thickness_vals.txt");
+
 
 	int count = 0;
 	int color_count = 0;
@@ -202,6 +241,7 @@ void Guides::Fill_Struct() {
 		int min_index = min_indices[i];
 		int color_min_index = 3*min_index;
 
+		//for (int j = 0; j < nearest_segments[i] + 2; j++) {
 		for (int j = 0; j < nearest_segments[i]; j++) {
 			Per_Vertex_Attribute attrib;
 
@@ -212,10 +252,21 @@ void Guides::Fill_Struct() {
 			nearest_thickness[count] = original_thickness[min_index];
 			nearest_transparency[count] = original_transparency[min_index];
 
-			// last vertex of the hair has zero parameter, so that we can have zero width in the extra line, 
-			// and avoid if statements in the shaders
-			if (j == nearest_segments[i] - 1 ) attrib.segment_index = 0;
+			// last two vertices of the hair strand has zero parameter, so that we can have zero width in the extra line, 
+			// and avoid 'if' statements in the shaders
+			/*if (j == nearest_segments[i] + 1 || j == nearest_segments[i]) {
+				attrib.segment_index = 0; 
+
+			}
+			else attrib.segment_index = 1;*/
+			
+
+			if (j == nearest_segments[i] -1) {
+				attrib.segment_index = 0;
+
+			}
 			else attrib.segment_index = 1;
+
 
 			attrib.thickness = nearest_thickness[count] * attrib.segment_index;
 			attrib.transparency = nearest_transparency[count];
@@ -228,13 +279,24 @@ void Guides::Fill_Struct() {
 			//cout << attrib.color[0] << " " << attrib.color[1] << "  " << attrib.color[2] << endl;
 
 			attributes.push_back(attrib);
+			/*if (j != 0 && j != nearest_segments[i]) {
+				++count;
+				++min_index;
+
+				color_count += 3;
+				color_min_index += 3;
+			}*/
+
 			++count;
 			++min_index;
 
 			color_count += 3;
 			color_min_index += 3;
+
+			myfile << attrib.thickness << endl;
 		}
 	}
+	cout << "NUMBER OF ELEMENTS IN attrib: " << attributes.size() << endl;
 	cout << "COUNT: " << count << endl;
 
 }
@@ -243,44 +305,50 @@ void Guides::Fill_Struct() {
 void Guides::SetupGuides() {
 
 	Fill_Struct();
+	
 
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(2, VBO);
+	glGenBuffers(3, VBO);
 
 	// Bind the current VAO. Every subsequent function call will affect the currently bound VAO
 	glBindVertexArray(VAO);
-	cout << "total_hair_points : " << total_hair_points << endl;
+	cout << "total_hair_points in SetupGuides: " << total_hair_points << endl;
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, 2* 3*total_hair_points * sizeof(float), this->points, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER,  3*total_hair_points * sizeof(float), this->points, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
 	glBufferData(GL_ARRAY_BUFFER, attributes.size() * sizeof(Per_Vertex_Attribute), &attributes[0], GL_STATIC_DRAW);
 
+	
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, 3 * total_hair_points * sizeof(float), this->tangents, GL_STATIC_DRAW);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	// vertex positions
 	glEnableVertexAttribArray(0);
 	// Insert vertex data at the "location = 0" with size 3 (3 vertex locations), and offset 0
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	// vertex positions
 	glEnableVertexAttribArray(1);
-	// Insert vertex data at the "location = 0" with size 3 (3 vertex locations), and offset 0
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Per_Vertex_Attribute), (void*)offsetof(Per_Vertex_Attribute, color));
 
 	glEnableVertexAttribArray(2);
-	// Insert vertex data at the "location = 0" with size 3 (3 vertex locations), and offset 0
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(Per_Vertex_Attribute), (void*)offsetof(Per_Vertex_Attribute, transparency));
 
 	glEnableVertexAttribArray(3);
-	// Insert vertex data at the "location = 0" with size 3 (3 vertex locations), and offset 0
 	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Per_Vertex_Attribute), (void*)offsetof(Per_Vertex_Attribute, segment_index));
 	
 	glEnableVertexAttribArray(4);
-	// Insert vertex data at the "location = 0" with size 3 (3 vertex locations), and offset 0
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Per_Vertex_Attribute), (void*)offsetof(Per_Vertex_Attribute, thickness));
 
+	
+	// tangent positions
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+	glEnableVertexAttribArray(5);
+	// Insert tangent data at the "location = 5" with size 3 (3 tangent locations), and offset 0
+	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	
 
 	// Unbind the VAO, so that a function doesn't accidentally change the VAO
 	glBindVertexArray(0);
@@ -292,9 +360,13 @@ void Guides::Draw() {
 
 	glBindVertexArray(VAO);
 	//int growth_mesh_hair_count = total_hair_points / line_segments[0];
-	int pointIndex = 0;
+	//int pointIndex = 0;
 
-	glDrawArrays(GL_LINE_STRIP_ADJACENCY, 0,  total_hair_points);
+	//glDrawArrays(GL_LINE_STRIP_ADJACENCY, 0,  total_hair_points);
+	//glDrawArrays(GL_LINE_STRIP, 0, total_hair_points);
+
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	glDrawArrays(GL_PATCHES, 0, total_hair_points);
 
 	
 	/*for (int i = 0; i < growth_mesh_hair_count; i++) {

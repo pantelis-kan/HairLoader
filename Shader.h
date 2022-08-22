@@ -22,6 +22,9 @@ public:
     // constructor reads and builds the shader
     Shader(const char* vertexPath, const char* fragmentPath);
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath);
+    // Tessellation Support
+    Shader(const char* vertexPath, const char* fragmentPath,
+           const char* tcs_path, const char* tes_path, const char* geometryPath);
     // use/activate the shader
     void use();
     // utility uniform functions (query a uniform location and set its value)

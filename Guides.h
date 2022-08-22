@@ -47,6 +47,7 @@ public:
 	Hair* hair;
 
 	float* points;
+	float* tangents;
 	int* nearest_segments;
 	float* nearest_thickness;
 	float* nearest_colors;
@@ -65,6 +66,7 @@ public:
 	void SelectGuidesFromHairfile(Hair& hair, float* roots);
 	void FillPointArray(int total_points);
 	void Fill_Struct();
+	void Fill_Tangents(int total_point_array_size);
 	void SetupGuides();
 	void Draw();
 };

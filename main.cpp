@@ -55,6 +55,8 @@ char light_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_
 
 char guide_vertex_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/guide_vertex_shader.glsl";
 char guide_geometry_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/guide_geometry_shader.glsl";
+char guide_control_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/guide_control_shader.glsl";
+char guide_evaluation_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/guide_evaluation_shader.glsl";
 char guide_fragment_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/guide_fragment_shader.glsl";
 
 float cameraX, cameraY, cameraZ;
@@ -104,7 +106,7 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 200.0f);
 	shader.setMat4("projection", projection);
 
-	glm::mat4 vMat, mMat;
+	glm::mat4 vMat, mMat, inverse_world;
 	
 	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 	
@@ -112,6 +114,8 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(objLocX, objLocY, objLocZ));
 	mMat = glm::scale(mMat, glm::vec3(0.2f, 0.2f, 0.2f));
 	mMat = glm::rotate(mMat, -45.0f, glm::vec3(0, 1, 0)); // rotate on y
+
+	inverse_world = glm::inverse(mMat);
 
 	// The normal matrix is defined as 'the transpose of the inverse of the upper-left 3x3 part of the model matrix
 	// Used for non-uniform scaling of the model. In a uniform scaling, there is no visible result whether we use normal matrix or not
@@ -161,6 +165,7 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	guide_shader.setMat4("model", mMat);
 	guide_shader.setMat4("view", vMat);
 	guide_shader.setMat4("projection", projection);
+	guide_shader.setMat4("InverseWorldMatrix", inverse_world);
 	guide_shader.SetVector3f("camera_front",camera.Front);
 	guide_shader.SetVector3f("camera_position", camera.Position);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -259,12 +264,16 @@ int main(void) {
 	// Initialize the GLFW library
 	if (!glfwInit()) { exit(EXIT_FAILURE); }
 
+	// MSAA 8x
+	//glfwWindowHint(GLFW_SAMPLES, 8);
+
 	// Make sure that the target system is compatible with at least OpenGL4.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
 	char texture_image_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/woman/head.tga";
 	//char texture_image_path[] = "C:/SOIL2-master/bin/img_mars.jpg";
+
 
 
 	// class GLFWwindow: Create a window that you can draw to
@@ -293,7 +302,9 @@ int main(void) {
 	Shader shader(vertex_shader_path, fragment_shader_path);
 	Shader light_shader(light_vertex_shader_path,light_fragment_shader_path);
 	Shader hair_shader(hair_vertex_shader_path, hair_fragment_shader_path);
-	Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path, guide_geometry_shader_path);
+	//Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path, guide_geometry_shader_path);
+	Shader guide_shader(guide_vertex_shader_path , guide_fragment_shader_path, guide_control_shader_path , guide_evaluation_shader_path ,
+						 guide_geometry_shader_path);
 	//Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path);
 
 	// Initialize the window instance
@@ -312,6 +323,10 @@ int main(void) {
 	growth_mesh_guides.SelectGuidesFromHairfile(hair,hair.GetRoots());
 
 	growth_mesh_guides.SetupGuides();
+
+	GLint MaxPatchVertices = 0;
+	glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
+	printf("Max supported patch vertices %d\n", MaxPatchVertices);
 
 	while (!glfwWindowShouldClose(window)) {
 
