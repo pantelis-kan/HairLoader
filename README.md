@@ -19,28 +19,28 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 
 1. **Extracted a point cloud from the root of each hair (10.000 total)**
 
-![alt text](https://i.postimg.cc/PrrTnH5d/point-cloud.png)
+![alt text](https://i.postimg.cc/PrrTnH5d/point-cloud.png)<br>
 
 
 2. **Executed the ball pivoting algorithm to turn the point cloud to a polygonal mesh using MeshLab**
 
-![alt text](https://i.postimg.cc/dVrWWkc3/ball-pivoting.png)
+![alt text](https://i.postimg.cc/dVrWWkc3/ball-pivoting.png)<br>
 
 
 3. **Simplified the mesh to 200 faces (growth mesh)**
 
-![alt text](https://i.postimg.cc/7hckNG8X/growth-mesh.png)
+![alt text](https://i.postimg.cc/7hckNG8X/growth-mesh.png)<br>
 
 
 4. **Selected the nearest hair for each vertex of the growth mesh (approximate nearest neighbor)**
 
-![alt text](https://i.postimg.cc/mrQg2wf4/guides-1.png)
+![alt text](https://i.postimg.cc/mrQg2wf4/guides-1.png)<br>
 
 
 
-5. **Rendered camera facing quads instead of lines, with a single draw call**
+5. **Rendered camera facing quads instead of lines, with a single draw call** (billboarding effect using the geometry shader)
 
-![alt text](https://i.postimg.cc/RVyS78v9/quads.png)
+![alt text](https://i.postimg.cc/RVyS78v9/quads.png)<br>
 
 6. **Used the tessellation shader to create smooth curves with Bezier curves.** A known problem with cubic Bezier curves is that there are discontinuities at every 4 vertices (the number of patches). A better approach is to use B-splines (and more specifically Hermite curves, taking advantage of the tangents for each pair of vertices).
 ![alt text](https://i.postimg.cc/N0XcJdG6/bezier.png)
