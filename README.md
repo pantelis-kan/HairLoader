@@ -6,9 +6,9 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 - Selected 270 guide hairs from 10,000 hairs with nearest neighbor algorithm.
 - Used only one draw call for the entire hairstyle.
 - Expanded each line segment to camera facing quads with the geometry shader.
+- Used tessellation to implement smooth curves with cubic B-splines.
 
 ## ToDo:
-- Use tessellation to implement cubic bezier curves for each guide.
 - Use tessellation to interpolate hair across the triangle: single-strand & multi-strand interpolation.
 - Implement different lighting algorithms (Kajiya & Kay, Marschner etc.).
 - Instance based rendering
