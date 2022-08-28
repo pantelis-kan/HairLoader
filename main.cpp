@@ -159,7 +159,10 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	//hair.DrawHair();
 
 
-
+	glm::mat4 bspline_mat = glm::mat4(vec4(-1, 3, -3, 1),
+									  vec4(3, -6, 3,  0),
+									  vec4(-3, 0 , 3, 0),
+									  vec4(1,  4,  1, 0));
 	// Render guide lines
 	guide_shader.use();
 	guide_shader.setMat4("model", mMat);
@@ -168,6 +171,7 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	guide_shader.setMat4("InverseWorldMatrix", inverse_world);
 	guide_shader.SetVector3f("camera_front",camera.Front);
 	guide_shader.SetVector3f("camera_position", camera.Position);
+	guide_shader.setMat4("bspline_mat",bspline_mat);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//growth_mesh.Draw(hair_shader);
 	growth_mesh_guides.Draw();

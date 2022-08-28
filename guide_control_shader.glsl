@@ -8,7 +8,7 @@ float uOuter1 = 10.0;
 in VS_OUT{
 	float thickness;
 	vec4 point;
-	vec4 tangent;
+	//vec4 tangent;
 	vec3 point_color;
 	float transparency;
 	
@@ -18,7 +18,7 @@ out CS_OUT{
 
 	float thickness;
 	vec4 point;
-	vec4 tangent;
+	//vec4 tangent;
 	vec3 point_color;
 	float transparency;
 	
@@ -34,7 +34,8 @@ void main( )
 	cs_out[ gl_InvocationID ].transparency = vs_out[ gl_InvocationID ].transparency;
 	cs_out[ gl_InvocationID ].point_color = vs_out[ gl_InvocationID ].point_color;
 	
-	
+	 gl_TessLevelOuter[0] = uOuter0;
+	 gl_TessLevelOuter[1] = uOuter1;
 
 }
 

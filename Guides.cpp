@@ -135,11 +135,107 @@ void Guides::SelectGuidesFromHairfile(Hair& hair, float* roots) {
 	cout << "Total hair points " << total_hair_points << endl;
 
 	FillPointArray(total_point_array_size);
-	Fill_Tangents(total_point_array_size);
+	//Fill_Tangents(total_point_array_size);
+	Fill_Indices(total_point_array_size);
 
 	myfile.close();
 }
 
+
+void Guides::Fill_Indices(int total_points) {
+
+	int count = 0;
+
+	int p0 = 0;
+	int p1 = 1;
+	int p2 = 2;
+	int p3 = 3;
+
+	/*
+	// TEST CASE ONLY
+	indices.push_back(0);
+	indices.push_back(0);
+	indices.push_back(1);
+	indices.push_back(2);
+
+	
+	indices.push_back(0);
+	indices.push_back(1);
+	indices.push_back(2);
+	indices.push_back(3);
+
+	indices.push_back(1);
+	indices.push_back(2);
+	indices.push_back(3);
+	indices.push_back(4);
+
+	indices.push_back(2);
+	indices.push_back(3);
+	indices.push_back(4);
+	indices.push_back(5);
+
+	indices.push_back(3);
+	indices.push_back(4);
+	indices.push_back(5);
+	indices.push_back(6);
+
+	indices.push_back(4);
+	indices.push_back(5);
+	indices.push_back(6);
+	indices.push_back(7);
+
+	indices.push_back(5);
+	indices.push_back(6);
+	indices.push_back(7);
+	indices.push_back(7);
+	*/
+	
+	ofstream myfile;
+	myfile.open("indices.txt");
+	
+
+
+	for (int i = 0; i < this->total_points / 3; i++) {
+
+		for (int j = 0; j < nearest_segments[i]-1; j++) {
+			
+			// special treatment for first and last vertex of the segment
+			if (j == 0) {
+				indices.push_back(p0);
+				indices.push_back(p0);
+				indices.push_back(p1);
+				indices.push_back(p2);
+
+				myfile << p0 << p0 << p1 << p2 << endl;
+				--p0; --p1; --p2; --p3;
+			}
+			else if (j == nearest_segments[i]-2) {
+				indices.push_back(p0);
+				indices.push_back(p1);
+				indices.push_back(p2);
+				indices.push_back(p2);
+				myfile << p0 << p1 << p2 << p2 << endl;
+				p0 += 2; p1 += 2; p2 += 2; p3 += 2;
+			}
+			else {
+				indices.push_back(p0);
+				indices.push_back(p1);
+				indices.push_back(p2);
+				indices.push_back(p3);
+				myfile << p0 << p1 << p2 << p3 << endl;
+
+			}
+			
+				//indices.push_back(count++);
+
+				++count; ++p0; ++p1; ++p2; ++p3;
+
+		}
+
+	}
+	cout << "Number of indices : " << indices.size() << endl;
+	myfile.close();
+}
 
 void Guides::FillPointArray(int total_points) {
 
@@ -309,6 +405,7 @@ void Guides::SetupGuides() {
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(3, VBO);
+	glGenBuffers(1, &EBO);
 
 	// Bind the current VAO. Every subsequent function call will affect the currently bound VAO
 	glBindVertexArray(VAO);
@@ -321,8 +418,12 @@ void Guides::SetupGuides() {
 	glBufferData(GL_ARRAY_BUFFER, attributes.size() * sizeof(Per_Vertex_Attribute), &attributes[0], GL_STATIC_DRAW);
 
 	
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
-	glBufferData(GL_ARRAY_BUFFER, 3 * total_hair_points * sizeof(float), this->tangents, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+	//glBufferData(GL_ARRAY_BUFFER, 3 * total_hair_points * sizeof(float), this->tangents, GL_STATIC_DRAW);
+
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glEnableVertexAttribArray(0);
@@ -344,10 +445,10 @@ void Guides::SetupGuides() {
 
 	
 	// tangent positions
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
-	glEnableVertexAttribArray(5);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+	//glEnableVertexAttribArray(5);
 	// Insert tangent data at the "location = 5" with size 3 (3 tangent locations), and offset 0
-	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	//glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	
 
 	// Unbind the VAO, so that a function doesn't accidentally change the VAO
@@ -366,8 +467,8 @@ void Guides::Draw() {
 	//glDrawArrays(GL_LINE_STRIP, 0, total_hair_points);
 
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glDrawArrays(GL_PATCHES, 0, total_hair_points);
-
+	//glDrawArrays(GL_PATCHES, 0, total_hair_points);
+	glDrawElements(GL_PATCHES, indices.size(), GL_UNSIGNED_INT, 0);
 	
 	/*for (int i = 0; i < growth_mesh_hair_count; i++) {
 		//glLineWidth(2.0);
