@@ -7,12 +7,11 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 - Used only one draw call for the entire hairstyle.
 - Expanded each line segment to camera facing quads with the geometry shader.
 - Used tessellation to implement smooth curves with cubic B-splines.
+- Use tessellation to interpolate hair across the scalp.
 
 ## ToDo:
-- Use tessellation to interpolate hair across the triangle: single-strand & multi-strand interpolation.
-- Implement different lighting algorithms (Kajiya & Kay, Marschner etc.).
-- Instance based rendering
-- Implement anti aliasing techniques for thin lines (MSAA or something more efficient)
+- Implement shading algorithms (Kajiya & Kay, Marschner etc.).
+- Implement anti aliasing.
 - Implement shadows (and deep opacity maps).
 
 ## Step by Step
@@ -42,8 +41,20 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 
 ![alt text](https://i.postimg.cc/RVyS78v9/quads.png)<br>
 
-6. **Used the tessellation shader to create smooth curves with cubic B-splines (guide_evaluation_shader.glsl).** Used the indices to reorder the way that the tessellator takes the vertices. **Next step** -> Use the v coordinate of the tessellator to interpolate hair strands across the entire scalp.
+6. **Used the tessellation shader to create smooth curves with cubic B-splines (guide_evaluation_shader.glsl).** Used the indices to reorder the way that the tessellator takes the vertices.
 
 
 ![alt text](https://i.postimg.cc/L6H5n4c0/bspline.png)
 
+7. **Used the tessellation shader to interpolate guide hair along the entire scalp.** Using single-strand based interpolation with noise texture to offset the newly generated hair along the normal, the entire scalp is filled with tessellation.
+
+![alt text](https://i.postimg.cc/DywJj1n9/2023-01-27-211343.png)
+
+
+The reason why all this was done, is to compare the performance between rendering each strand of hair one-by-one with one draw call per-strand , VS generating a small subset of strands and interpolating over them with tessellation. The image below describes this comparison. Left is naive approach with one draw call per strand, and right image is a single draw call with tessellation. We render much more vertices (595,200 vs 160,000 almost 3.7x more) with a performance boost! (27+ frames)
+
+
+![alt text](https://i.postimg.cc/8PsWkxsK/comparison.png)
+
+
+Next step: Shading algorithms
