@@ -54,7 +54,7 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 The reason why all this was done, is to compare the performance between rendering each strand of hair one-by-one with one draw call per-strand , VS generating a small subset of strands and interpolating over them with tessellation. The image below describes this comparison. Left is naive approach with one draw call per strand, and right image is a single draw call with tessellation. We render much more vertices (595,200 vs 160,000 almost 3.7x more) with a performance boost! (27+ frames)
 
 
-![alt text](https://i.postimg.cc/8PsWkxsK/comparison.png)
+![alt text](https://i.postimg.cc/zXWhRKSK/comparison.png)
 
 
 Next step: Shading algorithms
