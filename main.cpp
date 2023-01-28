@@ -2,6 +2,13 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
+#include <random>
+#include <math.h>
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
+
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -18,7 +25,16 @@
 
 #include <chrono>
 
-unsigned int SCR_WIDTH = 800;
+# define PI          3.141592653589793238462643383279502884L
+
+
+std::default_random_engine generator;
+std::normal_distribution<float> distribution(0.0, 1.0);
+
+
+unsigned int SCR_WIDTH = 1366;
+//unsigned int SCR_WIDTH = 800;
+//unsigned int SCR_HEIGHT = 768;
 unsigned int SCR_HEIGHT = 768;
 
 // camera
@@ -27,10 +43,12 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
+
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+GLuint noiseTexture;
 
 using namespace std;
 GLuint renderingProgram;
@@ -45,7 +63,9 @@ char hair_vertex_shader_path[] = "C:/OpenGLtemplate/Shaders/Vertex Shaders/hair_
 char hair_fragment_shader_path[] = "C:/OpenGLtemplate/Shaders/Fragment Shaders/hair_fragment_shader.glsl";
 
 //char growth_obj_path[] = "C:/Users/Panthelis/Desktop/growth_mesh1.obj";
-char growth_obj_path[] = "C:/Users/Panthelis/Desktop/growth_mesh_hairline.obj";
+//char growth_obj_path[] = "C:/Users/Panthelis/Desktop/growth_mesh_hairline.obj";
+//char growth_obj_path[] = "C:/Users/Panthelis/Desktop/growth_mesh_hairline2.obj";
+char growth_obj_path[] = "C:/Users/Panthelis/Desktop/growth_mesh_hairline3.obj";
 char obj_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/woman/woman1.obj";
 char hair_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/straight/straight.hair";
 //char hair_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/blonde/blonde.hair";
@@ -88,9 +108,10 @@ void init(GLFWwindow* window) {
 void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& light_shader, Shader& hair_shader, 
 				Model& model,Model& light, Guides& growth_mesh_guides,Model& growth_mesh, Shader& guide_shader) {
 
+
 	// per-frame time logic
 	// --------------------
-	float currentFrame = glfwGetTime();
+	double currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
@@ -100,16 +121,16 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	shader.use();
-
+	//glUseProgram(shader.ID);
 
 	// view/projection transformations
 	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 200.0f);
 	shader.setMat4("projection", projection);
 
 	glm::mat4 vMat, mMat, inverse_world;
-	
+
 	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-	
+
 	vMat = camera.GetViewMatrix();
 	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(objLocX, objLocY, objLocZ));
 	mMat = glm::scale(mMat, glm::vec3(0.2f, 0.2f, 0.2f));
@@ -122,27 +143,27 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(mMat)));
 
 	//glm::mat4 model_view = vMat * mMat;
-	shader.setMat3("normal_matrix",normal_matrix);
-	shader.setMat4("model",mMat);
+	
+	shader.setMat3("normal_matrix", normal_matrix);
+	shader.setMat4("model", mMat);
 	shader.setMat4("view", vMat);
 
-	shader.SetVector3f("lightColor",light_color);
-	shader.SetVector3f("camera_position",camera.Position);
-
+	shader.SetVector3f("lightColor", light_color);
+	shader.SetVector3f("camera_position", camera.Position);
+	
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-
+	glEnable(GL_TEXTURE_2D);
 	glm::vec3 light_pos(-25.0f, 0.0f, 0.0f);
-	
 
 	const float radius = glm::length(light_pos);
-	float rotateX = sin(glfwGetTime()) * radius;
-	float rotateZ = cos(glfwGetTime()) * radius;
-
+	double rotateX = sin(glfwGetTime()) * radius;
+	double rotateZ = cos(glfwGetTime()) * radius;
+	
 	shader.SetVector3f("lightPos", glm::vec3(rotateX, 0.0f, rotateZ));
 	shader.setFloat("specular_strength", 0.5);
 	model.Draw(shader);
-
+	
 
 	// Render hair
 
@@ -158,20 +179,29 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 	hair_shader.setFloat("default_transparency", hair.Default_Transparency());
 	//hair.DrawHair();
 
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)noiseTexture);
+
+
 
 	glm::mat4 bspline_mat = glm::mat4(vec4(-1, 3, -3, 1),
-									  vec4(3, -6, 3,  0),
-									  vec4(-3, 0 , 3, 0),
-									  vec4(1,  4,  1, 0));
+		vec4(3, -6, 3, 0),
+		vec4(-3, 0, 3, 0),
+		vec4(1, 4, 1, 0));
 	// Render guide lines
 	guide_shader.use();
 	guide_shader.setMat4("model", mMat);
 	guide_shader.setMat4("view", vMat);
 	guide_shader.setMat4("projection", projection);
 	guide_shader.setMat4("InverseWorldMatrix", inverse_world);
-	guide_shader.SetVector3f("camera_front",camera.Front);
+	guide_shader.SetVector3f("camera_front", camera.Front);
 	guide_shader.SetVector3f("camera_position", camera.Position);
-	guide_shader.setMat4("bspline_mat",bspline_mat);
+	guide_shader.setMat4("bspline_mat", bspline_mat);
+	guide_shader.setInt("noiseTexture", noiseTexture);
+
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//growth_mesh.Draw(hair_shader);
 	growth_mesh_guides.Draw();
@@ -179,7 +209,7 @@ void display(GLFWwindow* window, double CurrentTime, Shader& shader, Shader& lig
 
 	// Render light cube
 	light_shader.use();
-	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f,0.0f,0.0f));
+	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 	mMat = glm::scale(mMat, glm::vec3(0.9f, 0.9f, 0.9f));
 	mMat = glm::translate(mMat, glm::vec3(rotateX, 0.0f, rotateZ));
 	//model_view = vMat * mMat;
@@ -278,13 +308,14 @@ int main(void) {
 	char texture_image_path[] = "C:/Users/Panthelis/Desktop/Nvidia_HairWorks/Hair_Rendering_Research/Hair Samples (.hair file extension)/woman/head.tga";
 	//char texture_image_path[] = "C:/SOIL2-master/bin/img_mars.jpg";
 
-
-
 	// class GLFWwindow: Create a window that you can draw to
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Hair Loader", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Hair Loader1", NULL, NULL);
 
 	// Make the newly created window the current context (stores the entire OpenGL state)
 	glfwMakeContextCurrent(window);
+
+	// Initialize the GLEW library
+	if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
@@ -293,9 +324,6 @@ int main(void) {
 	// tell GLFW to capture our mouse
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	// Initialize the GLEW library
-	if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
-
 	// Sets the minimum number of screen updates to wait for until the buffers are swapped by glfwSwapBuffers.
 	// In other words, it enables VSync. Sets the swap interval for the current OpenGL context.
 	//glfwSwapInterval(1);
@@ -303,34 +331,31 @@ int main(void) {
 	// Disable vsync
 	glfwSwapInterval(0);
 
-	Shader shader(vertex_shader_path, fragment_shader_path);
-	Shader light_shader(light_vertex_shader_path,light_fragment_shader_path);
-	Shader hair_shader(hair_vertex_shader_path, hair_fragment_shader_path);
-	//Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path, guide_geometry_shader_path);
-	Shader guide_shader(guide_vertex_shader_path , guide_fragment_shader_path, guide_control_shader_path , guide_evaluation_shader_path ,
-						 guide_geometry_shader_path);
-	//Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path);
 
 	// Initialize the window instance
 	init(window);
 
-	Model model(obj_path);
-    Model light(light_path);
+	Shader shader(vertex_shader_path, fragment_shader_path);
+	Shader light_shader(light_vertex_shader_path, light_fragment_shader_path);
+	Shader hair_shader(hair_vertex_shader_path, hair_fragment_shader_path);
+	Shader guide_shader(guide_vertex_shader_path, guide_fragment_shader_path, guide_control_shader_path, guide_evaluation_shader_path,
+		guide_geometry_shader_path);
 
+	Model model(obj_path);
+	Model light(light_path);
 	Model growth_mesh(growth_obj_path);
 
 	hair.SetupHair();
 	hair.WriteRootOutput();
 	hair.WriteSegmentsArray();
 
-	Guides growth_mesh_guides(&growth_mesh, hair.GetSegments(),hair.GetHairCount(),&hair);
-	growth_mesh_guides.SelectGuidesFromHairfile(hair,hair.GetRoots());
-
+	Guides growth_mesh_guides(&growth_mesh, hair.GetSegments(), hair.GetHairCount(), &hair);
+	//Guides growth_mesh_guides(&growth_mesh, NULL,0);
+	growth_mesh_guides.SelectGuidesFromHairfile(hair, hair.GetRoots());
 	growth_mesh_guides.SetupGuides();
 
-	GLint MaxPatchVertices = 0;
-	glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
-	printf("Max supported patch vertices %d\n", MaxPatchVertices);
+	noiseTexture = Utils::loadTexture("noise128.jpg");
+	glGenTextures(1, &noiseTexture);
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -345,6 +370,8 @@ int main(void) {
 		// Handles window-related events (such as key pressing)
 		glfwPollEvents();
 	}
+
+	_CrtDumpMemoryLeaks();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

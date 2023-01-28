@@ -16,6 +16,8 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <map>
+#include <unordered_set>
 
 
 struct Per_Vertex_Attribute {
@@ -25,6 +27,15 @@ struct Per_Vertex_Attribute {
 	float color[3];
 	float thickness;
 	float direction;
+
+	glm::vec3 neighbor1;
+	glm::vec3 neighbor2;
+	glm::vec3 neighbor3;
+
+	glm::vec3 barycentrics;
+	glm::vec3 normal1;
+	glm::vec3 normal2;
+	glm::vec3 normal3;
 };
 
 class Guides {
@@ -36,9 +47,11 @@ public:
 	We use a vector because we don't know the number of segments each hair strand has
 	*/
 	std::vector<float*> guide_points;
+	std::vector<glm::vec3> guide_normals;
 
 	int hairCount;
 	float* growth_mesh_points;
+	float* growth_mesh_normals;
 
 	// segments for each line 
 	int* line_segments;
@@ -56,17 +69,27 @@ public:
 	int* min_indices;
 	int total_hair_points;
 
+	vector<unsigned int> indices;
+	vector<unsigned int> growth_mesh_indices;
+	vector<vector<int>> neighbors;
+	std::vector<Vertex> all_vertices;
+
 	vector<Per_Vertex_Attribute> attributes;
 
-	GLuint VAO;
+	GLuint VAO,EBO;
 	GLuint VBO[3];
 
+	//Guides(Model* growth, int* segments, int haircount,Hair* hairfile);
 	Guides(Model* growth, int* segments, int haircount,Hair* hairfile);
 	~Guides();
+	void FillPoints();
 	void SelectGuidesFromHairfile(Hair& hair, float* roots);
+	void Pick_Neighbor_Indices();
+	void Print_Growth_Mesh_Verts();
 	void FillPointArray(int total_points);
 	void Fill_Struct();
 	void Fill_Tangents(int total_point_array_size);
+	void Fill_Indices(int total_point_array_size);
 	void SetupGuides();
 	void Draw();
 };

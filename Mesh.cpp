@@ -11,22 +11,42 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture
 
 	cout << "Created mesh with " << vertices.size() << " vertices, " << indices.size() << " indices, and " << textures.size() << " texture coordinates" << endl;
 
+	//Write_Indices();
 	setupMesh();
 
 }
 
-float* Mesh::GetVertices(int* growth_mesh_points) {
+void Mesh::Write_Indices() {
+
+	ofstream myfile;
+	string filename = "mesh_indices_" + to_string(indices.size()) + ".txt";
+	myfile.open(filename);
+
+	for (auto it = indices.begin(); it != indices.end(); it++) {
+
+		unsigned int arr = *it;
+
+		myfile << arr << endl;
+	}
+
+	myfile.close();
+
+}
+
+
+float* Mesh::GetVertices(int& growth_mesh_points) {
 
 	float x, y, z;
 	int total_points = 0;
 	for (auto it = vertices.begin(); it != vertices.end(); ++it) ++total_points;
 
 
-	ofstream myfile;
-	myfile.open("growth_mesh_verts.txt");
+	//ofstream myfile;
+	//myfile.open("growth_mesh_verts.txt");
 
-	
-
+	cout << "Inside Mesh::GetVertices()" << endl;
+	cout << "total_points inside Mesh::GetVertices(): " << total_points << endl;
+	cout << "Vertices vector size: " << vertices.size() << endl;
 	float* points = new float[ total_points]; 
 
 	std::map<tuple<float, float,float>, int> check_duplicates;
@@ -47,7 +67,7 @@ float* Mesh::GetVertices(int* growth_mesh_points) {
 	
 		check_duplicates[make_tuple(x,y,z)] = count;
 
-		myfile << x << "  " << y << "  " << z << endl;
+		//myfile << x << "  " << y << "  " << z << endl;
 
 		points[count] = x;
 		points[count + 1] = y;
@@ -57,8 +77,10 @@ float* Mesh::GetVertices(int* growth_mesh_points) {
 	}
 	cout << "Actual (non duplicate) vertices : " << count << endl;
 
-	myfile.close();
-	*growth_mesh_points = count;
+	//myfile.close();
+	growth_mesh_points = count;
+
+	if(points == NULL) cout << "points array is NULL" << endl;
 	return points;
 }
 

@@ -17,6 +17,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+
 using namespace std;
 
 class Model {
@@ -24,7 +25,8 @@ class Model {
 	public:
 		Model(char* pathname);
 		void Draw(Shader& shader);
-		float* GetVertices(int* growth_mesh_points); // Retrieve Vertices for the first mesh (used for the growth mesh)
+		vector<Vertex> GetVertices(int& growth_mesh_points); // Retrieve Vertices for the first mesh (used for the growth mesh)
+		vector<unsigned int> GetIndices() { Mesh& mesh = this->meshes[0]; return mesh.indices; }
 
 	private:
 		// A model is a collection of meshes

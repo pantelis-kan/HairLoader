@@ -7,10 +7,10 @@ out vec4 FragColor;
 
 void main()
 {
-	vec3 col = vec3(1,0.95,0.56);
-	//FragColor = vec4(1.0 , 1.0 , 0.0 , 1.0);
-	//FragColor = vec4(col , Transparency);
+	vec3 static_color = vec3(1,0.95,0.56);
 	
-	// !!! FIX transparency flickering error !!!
-	FragColor = vec4(col , 1.0);
+	FragColor = vec4(static_color , Transparency);
+	
+	// Fix color values!
+	//FragColor = vec4(fragment_color , Transparency);
 }

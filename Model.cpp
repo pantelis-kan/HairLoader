@@ -12,11 +12,14 @@ void Model::Draw(Shader& shader) {
 	}
 }
 
-float* Model::GetVertices(int* growth_mesh_points) {
+vector<Vertex> Model::GetVertices(int& growth_mesh_points) {
 
 	Mesh& mesh = this->meshes[0];
+	
+	growth_mesh_points = mesh.vertices.size();
 
-	return mesh.GetVertices(growth_mesh_points);
+	return mesh.vertices;
+	//return mesh.GetVertices(growth_mesh_points);
 }
 
 
@@ -24,7 +27,7 @@ void Model::loadModel(string path) {
 
 	Assimp::Importer import;
 	//const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-	const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate );
+	const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{

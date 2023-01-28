@@ -46,7 +46,8 @@ class Mesh {
 
 		// draws current mesh using a shader
 		void Draw(Shader& shader);
-		float* GetVertices(int* growth_mesh_points);
+		float* GetVertices(int& growth_mesh_points);
+		void Write_Indices();
 
 	private:
 		//  Render data. Each mesh has its own vao, vbo and ebo
