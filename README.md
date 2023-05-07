@@ -54,7 +54,9 @@ The reason why all this was done, is to compare the performance between renderin
 ![alt text](https://i.postimg.cc/zXWhRKSK/comparison.png)
 
 
-8. **Hair Lighting model with shadow mapping**. Using Marschner model with PCF filtered shadow map. 
+8. **Hair Lighting model with shadow mapping**. Using Marschner model with PCF filtered shadow map. Visible shadow acne issues. More sophisticated shadow mapping techniques could help.
+
+
 ![alt text](https://i.postimg.cc/cLgqxgNp/pcf-shadows.png)
 
 ![alt text](https://i.postimg.cc/yYr4Ch2h/pcf-shadows2.png)
