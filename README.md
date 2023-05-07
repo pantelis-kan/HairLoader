@@ -8,11 +8,8 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 - Expanded each line segment to camera facing quads with the geometry shader.
 - Used tessellation to implement smooth curves with cubic B-splines.
 - Use tessellation to interpolate hair across the scalp.
-
-## ToDo:
 - Implement shading algorithms (Kajiya & Kay, Marschner etc.).
-- Implement anti aliasing.
-- Implement shadows (and deep opacity maps).
+- Implement shadows 
 
 ## Step by Step
 
@@ -57,4 +54,7 @@ The reason why all this was done, is to compare the performance between renderin
 ![alt text](https://i.postimg.cc/zXWhRKSK/comparison.png)
 
 
-Next step: Shading algorithms
+8. **Hair Lighting model with shadow mapping**. Using Marschner model with PCF filtered shadow map. 
+![alt text](https://i.postimg.cc/cLgqxgNp/pcf-shadows.png)
+
+![alt text](https://i.postimg.cc/yYr4Ch2h/pcf-shadows2.png)
