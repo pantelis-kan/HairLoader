@@ -40,7 +40,6 @@ This project is an implementation of real-time hair rendering in OpenGL and C++,
 
 6. **Used the tessellation shader to create smooth curves with cubic B-splines (guide_evaluation_shader.glsl).** Used the indices to reorder the way that the tessellator takes the vertices.
 
-
 ![alt text](https://i.postimg.cc/L6H5n4c0/bspline.png)
 
 7. **Used the tessellation shader to interpolate guide hair along the entire scalp.** Using single-strand based interpolation with noise texture to offset the newly generated hair along the normal, the entire scalp is filled with tessellation.
@@ -54,9 +53,26 @@ The reason why all this was done, is to compare the performance between renderin
 ![alt text](https://i.postimg.cc/zXWhRKSK/comparison.png)
 
 
-8. **Hair Lighting model with shadow mapping**. Using Marschner model with PCF filtered shadow map. Visible shadow acne issues. More sophisticated shadow mapping techniques could help.
+8. **Marschner Lighting model with PCF shadow mapping**. Using Marschner model with PCF filtered shadow map.
 
 
-![alt text](https://i.postimg.cc/cLgqxgNp/pcf-shadows.png)
+![alt text](https://i.postimg.cc/DwL5C7vP/PCF1.png)
 
-![alt text](https://i.postimg.cc/yYr4Ch2h/pcf-shadows2.png)
+![alt text](https://i.postimg.cc/XXMdFyCS/PCF2.png)
+
+
+9. **Marschner Lighting model with VSM shadow mapping**. Storing a texture with 2 channels: depth and variance.
+
+![alt text](https://i.postimg.cc/05hBZWGx/VSM-1.png)
+
+![alt text](https://i.postimg.cc/DfSNrkXB/VSM2.png)
+
+
+10. **Kajiya-Kay Lighting model with PCF shadow mapping**
+
+![alt text](https://i.postimg.cc/T15npchJ/Kajiya-PCF.png)
+
+
+11. **Kajiya-Kay Lighting model with VSM shadow mapping**
+
+![alt text](https://i.postimg.cc/SsvWSPQK/Kajiya-VSM.png)
