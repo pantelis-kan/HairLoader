@@ -59,6 +59,10 @@ public:
 	Model* growth_mesh;
 	Hair* hair;
 
+	glm::vec3 bboxMin = glm::vec3(1000000.0);
+	glm::vec3 bboxMax = glm::vec3(-1000000.0);;
+
+
 	float* points;
 	float* tangents;
 	int* nearest_segments;
@@ -90,8 +94,10 @@ public:
 	void Fill_Struct();
 	void Fill_Tangents(int total_point_array_size);
 	void Fill_Indices(int total_point_array_size);
+	void FindBoundingBox();
 	void SetupGuides();
 	void Draw();
+	void DrawRegular();
 };
 
 #endif

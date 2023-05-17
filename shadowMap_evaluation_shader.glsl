@@ -7,37 +7,23 @@ uniform mat4 model;
 
 uniform vec3 world_up;
 
-
 uniform sampler2D noiseTexture;
+uniform mat4 lightSpaceMatrix;
+
+uniform mat4 light_model;
+uniform mat4 light_view;
+uniform mat4 light_projection;
 
 in CS_OUT{
-
+	vec4 point;
 	float thickness;
-	vec3 point;
-	vec3 point_color;
-	float transparency;
-	vec3 neighbor1;
-	vec3 neighbor2;
-	vec3 neighbor3;
-	vec3 barycentrics;
 	vec3 normal;
-	vec4 shadowCoord;
-	
 }es_in[];
 
 out ES_OUT{
-
-	float thickness;
 	vec4 point;
+	float thickness;
 	vec4 pointWorld;
-	vec4 pointWorld2;
-	vec3 point_color;
-	float transparency;
-	vec3 Tangent;
-	vec3 Normal;
-	vec4 shadowCoord;
-	
-	
 } es_out;
 
 float rand( vec2 p )
@@ -79,11 +65,11 @@ void main( )
 
 	float v = gl_TessCoord.y;
 	
-	vec3 p0 = es_in[0].point;
-	vec3 p1 = es_in[1].point;
-	vec3 p2 = es_in[2].point;
-	vec3 p3 = es_in[3].point;
-
+	vec3 p0 = es_in[0].point.xyz;
+	vec3 p1 = es_in[1].point.xyz;
+	vec3 p2 = es_in[2].point.xyz;
+	vec3 p3 = es_in[3].point.xyz;
+	
 
 	float lengthToRoot = 2.0;
 	float g_clumpWidth = 2.0;
@@ -122,30 +108,16 @@ void main( )
 	
 	vec2 TessCoord = gl_TessCoord.xy;
 	 // Apply noise to offset position.
-    //float noise_ = 2.0 * TessCoord.x;
     float noise_ = TessCoord.y;
     TessCoord *= vec2(1.0 * (1.0 * 1.0), 0.2);
-	
-    /*finalPosition.x += noise_ * (1.0 - 1.0 * texture(noiseTexture, TessCoord.xy).r) * 0.5;
-    finalPosition.y += noise_ * (1.0 - 1.0 * texture(noiseTexture, TessCoord.xy ).r) * 0.5;
-    finalPosition.z += noise_ * (1.0 - 1.0 * texture(noiseTexture, TessCoord.xy ).r) * 0.5;*/
+
 	
 	finalPosition.x += noise_ *  0.5;
     finalPosition.y += noise_ * 0.5;
     finalPosition.z += noise_ * 0.5;
 	
-	
-	es_out.point =  view * model * vec4(finalPosition.xyz,1.0);
-	es_out.pointWorld = model * finalPosition;
-	es_out.pointWorld2 = finalPosition;
+	es_out.point =  light_view * light_model * model* vec4(finalPosition.xyz,1.0);
+	es_out.pointWorld = model* finalPosition;
 	es_out.thickness = es_in[0].thickness;
-	es_out.point_color = es_in[0].point_color;
-	es_out.transparency = es_in[0].transparency;
-	es_out.Tangent = (model * tangent).xyz;
-
-	es_out.Normal = (model*vec4(norm,1.0)).xyz;
-	es_out.shadowCoord = es_in[0].shadowCoord;
-	
-
 
 }

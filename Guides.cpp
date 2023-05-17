@@ -1,6 +1,8 @@
 #include "Guides.h"
 
 using namespace std;
+using glm::max;
+using glm::min;
 
 Guides::Guides(Model* growth, int* segments,int haircount, Hair* hairfile) {
 
@@ -20,6 +22,24 @@ Guides::Guides(Model* growth, int* segments,int haircount, Hair* hairfile) {
 	//Print_Growth_Mesh_Verts();
 	growth_mesh_indices = growth_mesh->GetIndices();
 
+}
+
+void Guides::FindBoundingBox() {
+
+	int count = 0;
+
+
+	for (int i = 0; i < this->total_points / 3; i++) {
+		for (int j = 0; j < nearest_segments[i]; j++) {
+
+			glm::vec3 point = glm::vec3(points[count], points[count+1], points[count+2]);
+
+			bboxMin = min(bboxMin, point);
+			bboxMax = max(bboxMax, point);
+
+			count += 3;
+		}
+	}
 }
 
 void Guides::FillPoints() {
@@ -672,18 +692,19 @@ void Guides::SetupGuides() {
 
 }
 
+void Guides::DrawRegular() {
+	glBindVertexArray(VAO);
+
+	glDrawArrays(GL_TRIANGLES, 0,total_hair_points);	
+
+	glBindVertexArray(0);
+}
 
 void Guides::Draw() {
 
 	glBindVertexArray(VAO);
-	//int growth_mesh_hair_count = total_hair_points / line_segments[0];
-	//int pointIndex = 0;
-
-	//glDrawArrays(GL_LINE_STRIP_ADJACENCY, 0,  total_hair_points);
-	//glDrawArrays(GL_LINE_STRIP, 0, total_hair_points);
 
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	//glDrawArrays(GL_PATCHES, 0, total_hair_points);
 	glDrawElements(GL_PATCHES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
 	
 	/*for (int i = 0; i < growth_mesh_hair_count; i++) {

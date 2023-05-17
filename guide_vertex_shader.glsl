@@ -12,6 +12,12 @@ layout (location = 9) in vec3 aNormal2;
 */
 layout (location = 10) in vec3 aNormal;
 
+uniform mat4 lightSpaceMatrix;
+uniform mat4 view;
+uniform mat4 model;
+uniform mat4 projection;
+
+
 
 out VS_OUT{
 
@@ -24,6 +30,7 @@ out VS_OUT{
 	vec3 neighbor3;
 	vec3 barycentrics;
 	vec3 normal;
+	vec4 shadowCoord;
 	
 }vs_out;
 
@@ -40,6 +47,14 @@ void main()
 	vs_out.normal2 = aNormal2;
 	*/
 	vs_out.normal = aNormal;
+	
+	vec4 clipPosition = projection * view * model * vec4(aPos,1.0);
+	vec4 worldPosition = model * vec4(aPos,1.0);
+	vec4 texCoords = lightSpaceMatrix * worldPosition;
+	vec2 ndcCoords = texCoords.xy / texCoords.w;
+	vec2 texCoords1 = 0.5 * ndcCoords + vec2(0.5);
+	vs_out.shadowCoord = vec4(texCoords1, clipPosition.z, clipPosition.w);
+
 	
 }
 
