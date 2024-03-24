@@ -41,8 +41,8 @@ float* Mesh::GetVertices(int& growth_mesh_points) {
 	for (auto it = vertices.begin(); it != vertices.end(); ++it) ++total_points;
 
 
-	//ofstream myfile;
-	//myfile.open("growth_mesh_verts.txt");
+	ofstream myfile;
+	myfile.open("growth_mesh_verts.txt");
 
 	cout << "Inside Mesh::GetVertices()" << endl;
 	cout << "total_points inside Mesh::GetVertices(): " << total_points << endl;
@@ -67,7 +67,7 @@ float* Mesh::GetVertices(int& growth_mesh_points) {
 	
 		check_duplicates[make_tuple(x,y,z)] = count;
 
-		//myfile << x << "  " << y << "  " << z << endl;
+		myfile << x << "  " << y << "  " << z << endl;
 
 		points[count] = x;
 		points[count + 1] = y;
@@ -77,7 +77,7 @@ float* Mesh::GetVertices(int& growth_mesh_points) {
 	}
 	cout << "Actual (non duplicate) vertices : " << count << endl;
 
-	//myfile.close();
+	myfile.close();
 	growth_mesh_points = count;
 
 	if(points == NULL) cout << "points array is NULL" << endl;
@@ -138,6 +138,7 @@ void Mesh::Draw(Shader& shader)
 
         for(unsigned int i = 0; i < textures.size(); i++)
         {
+			//cout << "Activating texture GL_TEXTURE0 + " << i << endl;
             glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
             // retrieve texture number (the N in diffuse_textureN)
             string number;
@@ -158,6 +159,7 @@ void Mesh::Draw(Shader& shader)
             glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
+			//cout << "Binding " << textures[i].id << endl;
         }
         
         // draw mesh

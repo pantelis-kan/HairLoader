@@ -18,6 +18,7 @@
 #include <fstream>
 #include <map>
 #include <unordered_set>
+#include <unordered_map>
 
 
 struct Per_Vertex_Attribute {
@@ -26,16 +27,15 @@ struct Per_Vertex_Attribute {
 	float transparency;
 	float color[3];
 	float thickness;
-	float direction;
-
-	glm::vec3 neighbor1;
-	glm::vec3 neighbor2;
-	glm::vec3 neighbor3;
 
 	glm::vec3 barycentrics;
-	glm::vec3 normal1;
-	glm::vec3 normal2;
 	glm::vec3 normal3;
+	glm::vec3 normal_neighb1;
+	glm::vec3 normal_neighb2;
+	glm::vec3 normal_neighb3;
+
+	glm::vec3 guide_neighb2;
+	glm::vec3 guide_neighb3;
 };
 
 class Guides {
@@ -64,17 +64,17 @@ public:
 
 
 	float* points;
-	float* tangents;
 	int* nearest_segments;
 	float* nearest_thickness;
 	float* nearest_colors;
 	float* nearest_transparency;
-	float* nearest_directions;
 	int* min_indices;
 	int total_hair_points;
 
 	vector<unsigned int> indices;
 	vector<unsigned int> growth_mesh_indices;
+	std::vector<glm::vec3> barycentrics;
+	int maxHairPerTriangle;
 	vector<vector<int>> neighbors;
 	std::vector<Vertex> all_vertices;
 
@@ -83,21 +83,28 @@ public:
 	GLuint VAO,EBO;
 	GLuint VBO[3];
 
+	std::unordered_map<int, std::unordered_set<int>> adjacency_map;
+
 	//Guides(Model* growth, int* segments, int haircount,Hair* hairfile);
 	Guides(Model* growth, int* segments, int haircount,Hair* hairfile);
 	~Guides();
 	void FillPoints();
 	void SelectGuidesFromHairfile(Hair& hair, float* roots);
-	void Pick_Neighbor_Indices();
 	void Print_Growth_Mesh_Verts();
 	void FillPointArray(int total_points);
 	void Fill_Struct();
-	void Fill_Tangents(int total_point_array_size);
 	void Fill_Indices(int total_point_array_size);
 	void FindBoundingBox();
 	void SetupGuides();
 	void Draw();
 	void DrawRegular();
+	void Pick_Neighbor_Indices();
+	void generateBarycentrics(int N);
+
+	void Pick_Neighbor_Indices2();
+	void update_neighbors(std::unordered_map<int, std::unordered_set<int>>& adjacency_map,
+		const std::unordered_map<int, std::unordered_set<int>>& vertex_to_triangle,
+		int vertex, int neighbor, int current_triangle);
 };
 
 #endif

@@ -3,6 +3,70 @@
 #include "Shader.h"
 
 
+Shader::Shader(const char* computePath)
+{
+    // 1. retrieve the vertex/fragment source code from filePath
+    std::string computeCode;
+    std::ifstream computeShaderFile;
+
+    // ensure ifstream objects can throw exceptions:
+    computeShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    try
+    {
+        // open files
+        computeShaderFile.open(computePath);
+        std::stringstream vShaderStream, fShaderStream;
+        // read file's buffer contents into streams
+        vShaderStream << computeShaderFile.rdbuf();
+        // close file handlers
+        computeShaderFile.close();
+        // convert stream into string
+        computeCode = vShaderStream.str();
+    }
+    catch (std::ifstream::failure e)
+    {
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+    }
+
+    // convert to c string
+    const char* computeShaderCode = computeCode.c_str();
+
+
+    unsigned int compute;
+    int success;
+    char infoLog[512];
+
+    // Create,feed and compile the vertex Shader
+    compute = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(compute, 1, &computeShaderCode, NULL);
+    glCompileShader(compute);
+
+    // print compile errors if any
+    glGetShaderiv(compute, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(compute, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::COMPUTE::COMPILATION_FAILED\n" << infoLog << std::endl;
+    };
+
+    // shader Program
+    ID = glCreateProgram();
+    glAttachShader(ID, compute);
+    glLinkProgram(ID);
+    // print linking errors if any
+    glGetProgramiv(ID, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(ID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+
+    // delete the shaders as they're linked into our program now and no longer necessary
+    glDeleteShader(compute);
+}
+
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
     // 1. retrieve the vertex/fragment source code from filePath
@@ -418,6 +482,7 @@ void Shader::SetVector4f(const char* name, float x, float y, float z, float w, b
     if (useShader)
         this->use();
     glUniform4f(glGetUniformLocation(this->ID, name), x, y, z, w);
+
 }
 void Shader::SetVector4f(const char* name, const glm::vec4& value, bool useShader)
 {
@@ -430,6 +495,14 @@ void Shader::SetMatrix4(const char* name, const glm::mat4& matrix, bool useShade
     if (useShader)
         this->use();
     glUniformMatrix4fv(glGetUniformLocation(this->ID, name), 1, false, glm::value_ptr(matrix));
+}
+
+void Shader::SetArrayMatrix4(const char* name, float* UniformArray, int arraySize, bool useShader)
+{
+    if (useShader)
+        this->use();
+
+    glUniformMatrix4fv(glGetUniformLocation(this->ID, name), arraySize, GL_FALSE, UniformArray);
 }
 
 void Shader::setMat4(const std::string& name, const glm::mat4& mat) const
