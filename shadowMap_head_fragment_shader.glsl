@@ -1,11 +1,6 @@
 #version 430
 
-
-out float FragDepth;
-in vec4 posWorld;
-
 layout(location = 0) out vec4 varianceData;
-
 
 vec2 ComputeMoments(float Depth) {   
 	vec2 Moments;   // First moment is the depth itself.  
@@ -16,17 +11,17 @@ vec2 ComputeMoments(float Depth) {
 	return Moments; 
 } 
 
-
-uniform float nearPlane;
-uniform float farPlane;
 void main()
 {
-	//float normalizedDepth = (gl_FragCoord.z - nearPlane) / (farPlane + abs(nearPlane));
-	FragDepth =  gl_FragCoord.z ;
+	gl_FragDepth = gl_FragCoord.z;
 	
-	vec2 Moments = ComputeMoments(FragDepth);
+	vec2 Moments = ComputeMoments(gl_FragDepth);
 	varianceData = vec4(Moments.x,Moments.y, 0.0 , 1.0);
-
+	
+	/*float nearPlane = 0.1;
+	float farPlane = 1000.0;
+	float linearDepth = (2.0*nearPlane ) / (farPlane + nearPlane - gl_FragCoord.z*(farPlane -nearPlane)) ;
+	gl_FragDepth = linearDepth;*/
 }
 
 

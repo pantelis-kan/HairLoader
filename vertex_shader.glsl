@@ -22,7 +22,8 @@ void main()
 	
 	// per-fragment world position:
 	//multiplying the vertex position attribute with the model matrix only (not the view and projection matrix) to transform it to world space coordinates
-	FragPos = vec3(model * vec4(aPos, 1.0));
+	FragPos = vec3( model * vec4(aPos, 1.0));
 	
+
     gl_Position = projection *  view * model * vec4(aPos, 1.0);
 }

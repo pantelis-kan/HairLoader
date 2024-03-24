@@ -1,27 +1,35 @@
 #version 430
-#define NUM_CURVE_POINTS 10
 layout( isolines, equal_spacing) in;
 
 uniform mat4 view;
 uniform mat4 model;
-
 uniform vec3 world_up;
 
+uniform mat3 guide_normal_matrix;
 
 uniform sampler2D noiseTexture;
+uniform vec3 lightPos;
+
+layout(std430, binding = 0) buffer SSBO {
+    vec3 data[];
+};
 
 in CS_OUT{
 
 	float thickness;
 	vec3 point;
-	vec3 point_color;
-	float transparency;
-	vec3 neighbor1;
-	vec3 neighbor2;
-	vec3 neighbor3;
 	vec3 barycentrics;
 	vec3 normal;
 	vec4 shadowCoord;
+	
+	vec3 guide_neighb2;
+	vec3 guide_neighb3;
+	
+	vec3 normal_neighb1;
+	vec3 normal_neighb2;
+	vec3 normal_neighb3;
+	
+	vec3 interpolated_normal;
 	
 }es_in[];
 
@@ -31,12 +39,13 @@ out ES_OUT{
 	vec4 point;
 	vec4 pointWorld;
 	vec4 pointWorld2;
-	vec3 point_color;
-	float transparency;
 	vec3 Tangent;
 	vec3 Normal;
 	vec4 shadowCoord;
-	
+	vec3 barycentrics;
+	bool last_segment;
+	bool first_segment;
+	vec3 HairBarycentric;
 	
 } es_out;
 
@@ -74,34 +83,7 @@ vec4 Tangent(vec3 p0, vec3 p1, vec3 p2, vec3 p3, float u){
 	return vec4((b0*T0 + b1*T1 + b2*T2), 1.0);
 }
 
-void main( )
-{
-
-	float v = gl_TessCoord.y;
-	
-	vec3 p0 = es_in[0].point;
-	vec3 p1 = es_in[1].point;
-	vec3 p2 = es_in[2].point;
-	vec3 p3 = es_in[3].point;
-
-
-	float lengthToRoot = 2.0;
-	float g_clumpWidth = 2.0;
-
-	float u = clamp(gl_TessCoord.x, 0.0, 1.0);
-	
-	vec4 position = B_spline(p0,p1,p2,p3,gl_TessCoord.x);
-	vec4 tangent = Tangent(p0,p1,p2,p3,u);
-	
-	vec3 coord1 = tangent.xyz;
-	vec3 coord2 = normalize(cross(coord1,world_up));
-	vec3 coord3 = normalize(cross(coord1,coord2));
-	
-	vec4 Xaxis = vec4(coord1, 1.0);
-	vec4 Zaxis = vec4(coord2, 1.0);
-	vec4 Yaxis = vec4(coord3, 1.0);
-	
-	//float radius = g_clumpWidth * ( g_rootRadius*(1-lengthToRoot) + g_tipRadius*lengthToRoot );
+vec4 SingleStrandInterpolation(float v, vec4 position, vec3 normal, float barycentric){
 	float radius = 1.0;
 	
 	float r = 4.0 * sqrt(rand(vec2(v)));
@@ -113,37 +95,103 @@ void main( )
 	float g_tipRadius = 0.5;
 	noise *= g_rootRadius*0.5 + g_tipRadius*0.5;
 	
+	vec3 norm = normalize(vec3(-normal.x,normal.y,0.f));
+	vec3 norm2 = cross(normal,norm);
+	
+	vec4 finalPos = position + vec4(r * cos(theta)*norm + r * sin(theta)*norm2,0.0) ;
+	
+    float noise_ = es_in[0].barycentrics.x;
+	
+	finalPos.x += noise_ *  0.5;
+    finalPos.y += noise_ * 0.5;
+    finalPos.z += noise_ * 0.5;
+	
+	return finalPos;
+
+}
+
+void main( )
+{
+
+	float v = gl_TessCoord.y;
+	
+	
+	vec3 p0 =  es_in[0].point;
+	vec3 p1 = es_in[1].point;
+	vec3 p2 = es_in[2].point;
+	vec3 p3 = es_in[3].point;
+
+	//vec3 test_barycentric = vec3(0.33,0.33,0.33);
+	// Ensure that gl_TessCoord.y is normalized to fit within the range of the array
+    float arrayIndex = clamp(v * (128.0 - 1.0), 0.0, 128.0 - 1.0);
+
+    // Round the array index to the nearest integer
+    int index = int(round(arrayIndex));
+
+	
+	vec3 test_barycentric = data[int(gl_TessCoord.y * (data.length() - 1))];
+	//vec3 test_barycentric = vec3(0.333 , 0.333, 0.333);
+	vec3 interpolated_normal;
+	
+	
+	bool doMultiStrand = test_barycentric.x > 0.3 ? true: false;
+	
+	
+	if(es_in[0].normal_neighb2.x != -1 && doMultiStrand){
+		p0 = test_barycentric.x * es_in[0].point + test_barycentric.y * es_in[0].guide_neighb2 + test_barycentric.z * es_in[0].guide_neighb3;
+		p1 = test_barycentric.x * es_in[1].point + test_barycentric.y * es_in[1].guide_neighb2 + test_barycentric.z * es_in[1].guide_neighb3;
+		p2 = test_barycentric.x * es_in[2].point + test_barycentric.y * es_in[2].guide_neighb2 + test_barycentric.z * es_in[2].guide_neighb3;
+		p3 = test_barycentric.x * es_in[3].point + test_barycentric.y * es_in[3].guide_neighb2 + test_barycentric.z * es_in[3].guide_neighb3;
+	
+		interpolated_normal = test_barycentric.x * es_in[0].normal_neighb1 + test_barycentric.y * es_in[0].normal_neighb2 + test_barycentric.z * es_in[0].normal_neighb3;
+
+	}
+	
+	
+	
+	float u = clamp(gl_TessCoord.x, 0.0, 1.0);
+	
+	vec4 position = B_spline(p0,p1,p2,p3,gl_TessCoord.x);
+	vec4 tangent = Tangent(p0,p1,p2,p3,u);
+
+	vec4 finalPosition;
+
 	vec3 norm = normalize(vec3(-es_in[0].normal.x,es_in[0].normal.y,0.f));
 	vec3 norm2 = cross(es_in[0].normal,norm);
 	
-	// Single strand interpolation
-	vec4 finalPosition = position + vec4(r * cos(theta)*norm + r * sin(theta)*norm2,0.0) ;//+ noise*Zaxis + noise*Yaxis;
+	if(es_in[0].normal_neighb2.x == -1 ){
+		finalPosition = SingleStrandInterpolation(v, position,es_in[0].normal,es_in[0].barycentrics.x);
+		//finalPosition = position;
+	}
+	else{
+	
+		if(!doMultiStrand) finalPosition = SingleStrandInterpolation(v, position,es_in[0].normal,es_in[0].barycentrics.x);
+
+		else finalPosition =    v * vec4(interpolated_normal,0.0)  +   position;
+		//finalPosition =      position;
+
+	}
 	
 	
-	vec2 TessCoord = gl_TessCoord.xy;
-	 // Apply noise to offset position.
-    //float noise_ = 2.0 * TessCoord.x;
-    float noise_ = TessCoord.y;
-    TessCoord *= vec2(1.0 * (1.0 * 1.0), 0.2);
-	
-    /*finalPosition.x += noise_ * (1.0 - 1.0 * texture(noiseTexture, TessCoord.xy).r) * 0.5;
-    finalPosition.y += noise_ * (1.0 - 1.0 * texture(noiseTexture, TessCoord.xy ).r) * 0.5;
-    finalPosition.z += noise_ * (1.0 - 1.0 * texture(noiseTexture, TessCoord.xy ).r) * 0.5;*/
-	
-	finalPosition.x += noise_ *  0.5;
-    finalPosition.y += noise_ * 0.5;
-    finalPosition.z += noise_ * 0.5;
-	
+	//finalPosition = SingleStrandInterpolation(v, position,es_in[0].normal,es_in[0].barycentrics.x);
+
 	
 	es_out.point =  view * model * vec4(finalPosition.xyz,1.0);
-	es_out.pointWorld = model * finalPosition;
-	es_out.pointWorld2 = finalPosition;
+	es_out.pointWorld =  model * vec4(finalPosition.xyz,1.0);
+	es_out.pointWorld2 = vec4(finalPosition.xyz,1.0);
+	
+	
 	es_out.thickness = es_in[0].thickness;
-	es_out.point_color = es_in[0].point_color;
-	es_out.transparency = es_in[0].transparency;
+	es_out.last_segment = false;
+	if(p2.x == p3.x && p2.y == p3.y && p3.z == p2.z) es_out.last_segment = true;	
+	es_out.first_segment = false;
+	if(p0.x == p1.x && p0.y == p1.y && p0.z == p1.z) es_out.first_segment = true;
+	
 	es_out.Tangent = (model * tangent).xyz;
+	es_out.barycentrics = es_in[0].barycentrics;
+	es_out.HairBarycentric = test_barycentric;
 
-	es_out.Normal = (model*vec4(norm,1.0)).xyz;
+	es_out.Normal = ( model*vec4(norm,1.0)).xyz;
 	es_out.shadowCoord = es_in[0].shadowCoord;
 	
 
