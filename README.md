@@ -53,26 +53,11 @@ The reason why all this was done, is to compare the performance between renderin
 ![alt text](https://i.postimg.cc/zXWhRKSK/comparison.png)
 
 
-8. **Marschner Lighting model with PCF shadow mapping**. Using Marschner model with PCF filtered shadow map.
+8. **Marschner Lighting model with Deep Opacity Maps and PCF**. Using Marschner model with PCF filtered shadow map.
+![alt text](https://i.postimg.cc/Fzt7fz7j/front1.png)
+![alt text](https://i.postimg.cc/j5nDdPdx/front2.png)
+![alt text](https://i.postimg.cc/q75tTjrD/front3.png)
 
+**Simulating backlight effect**
+![alt text](https://i.postimg.cc/90Gzy27s/backlit.png)
 
-![alt text](https://i.postimg.cc/DwL5C7vP/PCF1.png)
-
-![alt text](https://i.postimg.cc/XXMdFyCS/PCF2.png)
-
-
-9. **Marschner Lighting model with VSM shadow mapping**. Storing a texture with 2 channels: depth and variance.
-
-![alt text](https://i.postimg.cc/05hBZWGx/VSM-1.png)
-
-![alt text](https://i.postimg.cc/DfSNrkXB/VSM2.png)
-
-
-10. **Kajiya-Kay Lighting model with PCF shadow mapping**
-
-![alt text](https://i.postimg.cc/T15npchJ/Kajiya-PCF.png)
-
-
-11. **Kajiya-Kay Lighting model with VSM shadow mapping**
-
-![alt text](https://i.postimg.cc/SsvWSPQK/Kajiya-VSM.png)
