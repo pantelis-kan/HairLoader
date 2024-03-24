@@ -58,6 +58,10 @@ The reason why all this was done, is to compare the performance between renderin
 ![alt text](https://i.postimg.cc/j5nDdPdx/front2.png)
 ![alt text](https://i.postimg.cc/q75tTjrD/front3.png)
 
+
+
 **Simulating backlight effect**
+
+
 ![alt text](https://i.postimg.cc/90Gzy27s/backlit.png)
 
